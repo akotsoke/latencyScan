@@ -74,7 +74,7 @@ fit_f_Peak = {}
 for vfat in range(0,24):
     fit_f[vfat] = r.TF1("fit%i_f"%vfat,"[0]",0,255)  #Fit function for the whole range
     fit_f_NoPeaks[vfat] = r.TF1("fit%i_f1"%vfat,fline,0,255,1) #Fit function for the range w/out the peaks
-    fit_f_Peak[vfat]= r.TF1("fit%i_f_peak"%vfat,"[0]",30,40)  #Fit function for the peak range
+    fit_f_Peak[vfat]= r.TF1("fit%i_f_peak"%vfat,"gaus",30,40)  #Fit function for the peak range
 
     lat_ga[vfat] = r.TGraphAsymmErrors(Nhits_hs[vfat],Nev_hs[vfat])
     lat_ga[vfat].SetName("lat%i_ga"%vfat)
