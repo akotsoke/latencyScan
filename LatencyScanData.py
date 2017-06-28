@@ -42,6 +42,8 @@ par_Peak= array( 'f' )
 errY_Peak= array( 'f' )
 errX_Peak=array('f')
 
+N_hits = [] 
+
 def fline(x,par):
 	if(x[0]>20 and x[0]<50):
 		TF1.RejectPoint()
@@ -55,12 +57,19 @@ def fline(x,par):
 for vfat in range(24):
     Nhits_hs[vfat] = r.TH1D("Nhits%i_h"%vfat,"Nhits%i_h"%vfat,256,-0.5,255.5)
     Nev_hs[vfat] = r.TH1D("Nev%i_h"%vfat,"Nev%i_h"%vfat,256,-0.5,255.5)
+    N_hits.append([])
     pass
 
 for evt in t:
     Nhits_hs[int(evt.vfatN)].AddBinContent(evt.lat + 1,evt.Nhits)
     Nev_hs[int(evt.vfatN)].AddBinContent(evt.lat + 1,evt.Nev)
+    N_hits[int(evt.vfatN)].append(evt.Nhits)
     pass
+
+N_hits= np.array(N_hits)
+print np.amax(N_hits[1])   
+
+
 
 canv = r.TCanvas("canv","canv",1000,1000)
 canv.cd()
@@ -74,7 +83,7 @@ fit_f_Peak = {}
 for vfat in range(0,24):
     fit_f[vfat] = r.TF1("fit%i_f"%vfat,"[0]",0,255)  #Fit function for the whole range
     fit_f_NoPeaks[vfat] = r.TF1("fit%i_f1"%vfat,fline,0,255,1) #Fit function for the range w/out the peaks
-    fit_f_Peak[vfat]= r.TF1("fit%i_f_peak"%vfat,"gaus",30,40)  #Fit function for the peak range
+    fit_f_Peak[vfat]= r.TF1("fit%i_f_peak"%vfat,"[0]",30,40)  #Fit function for the peak range
 
     lat_ga[vfat] = r.TGraphAsymmErrors(Nhits_hs[vfat],Nev_hs[vfat])
     lat_ga[vfat].SetName("lat%i_ga"%vfat)
@@ -116,6 +125,7 @@ for vfat in range(0,24):
 
    
 
+
 tgr= r.TGraphErrors(24,vfats,par,errX,errY)
 tgr.SetName("Average_Nhits_per_Vfat")
 tgr.SetMarkerStyle(20)
@@ -133,23 +143,32 @@ tgr_NoPeaks.SetMarkerSize(0.7)
 tgr_NoPeaks.SetMarkerColor(r.kGreen)
 tgr_NoPeaks.SetLineColor(r.kGreen)
 
-#tgr_Peak= r.TGraphErrors(24,vfats,par_Peak,errX_Peak,errY_Peak)
-#tgr_Peak.SetMarkerStyle(20)
-#tgr_Peak.SetMarkerSize(0.7)
-#tgr_Peak.SetMarkerColor(r.kBlue)
-#tgr_Peak.SetLineColor(r.kBlue)
+
+
 
 tgr.Draw("AP")
 tgr_NoPeaks.Draw("PSAME")
-#tgr_Peak.Draw("PSAME")
 tgr.SetTitle("Average Nhits per Vfat")
 canv.SaveAs("Average_Nhits_per_vfat.png")
 tgr.Write()
 
+par_fraction=array( 'f' )
 
 
-
-
+par_Peak= np.array(par_Peak)
+par_NoPeaks=np.array(par_NoPeaks)
+par_fraction = np.array(par_Peak/par_NoPeaks)
+vfats=np.array(vfats)
+tgr_fraction= r.TGraph(24,vfats,par_fraction)
+tgr_fraction.SetMarkerStyle(20)
+tgr_fraction.SetMarkerSize(0.9)
+tgr_fraction.SetMarkerColor(r.kBlue)
+tgr_fraction.SetLineColor(r.kBlue)
+tgr_fraction.Draw("AP")
+tgr_fraction.GetXaxis().SetTitle("VFAT Position")
+tgr_fraction.GetYaxis().SetTitle("Average_{InPeak}/Average_{OutPeak}")
+tgr_fraction.GetYaxis().SetTitleOffset(1.3)
+canv.SaveAs("ratio_InPeak_OutOfPeak.png")
 
 
 
